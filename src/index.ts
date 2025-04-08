@@ -245,35 +245,39 @@ app.post("/api/v1/brain/share", userMiddleware, async (req, res) => {
         }
 })
 
-app.get("/api/v1/brain/:shareLink", async (req, res) => {
+app.post("/api/v1/brain/:shareLink", async (req, res) => {
     const hash = req.params.shareLink;
-    const link = await LinkModel.findOne({
-        hash: hash
-    })
-    if(!link){
-        res.status(411).json({
-            message: "incorrect url"
-        })
-        return;
-    }
+    try{
+        const link = await LinkModel.findOne({
+            hash: hash
+        }).populate<{ userId: typeof UserModel.prototype }>("userId").exec();
+        if(!link){
+            res.status(411).json({
+                message: "incorrect url"
+            })
+            return;
+        }
+    
+        const content = await ContentModel.find({
+            userId: link.userId
+        }).populate<{ tags: (typeof TagModel.prototype)[]; }>("tags");
 
-    const content = await ContentModel.findOne({
-        userId: link.userId
-    })
-    const user = await UserModel.findOne({
-        _id: link.userId
-    })
-
-    if(!user){
-        res.status(411).json({
-            message: "user not found"
-        })
-        return;
+        const formatcontent = content.map((content) => ({
+            id: content._id,
+            type: content.type,
+            link: content.link,
+            title: content.title,
+            tags: content.tags.map((tag) => tag.title),
+        }))
+        
+        res.status(200).json({
+            username: link.userId.username, content: formatcontent
+        });
     }
-    res.json({
-        username: user.username,
-        content: content
-    })
+    catch(e){
+        res.status(500).json({error: "Internal server error"});
+    }
+    
 })
 
 async function main() {
