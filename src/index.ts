@@ -25,7 +25,7 @@ app.use(cors({
     credentials: true,
 }));
 app.get('/', (req,res) => {
-    res.json("hello");
+    res.send("hello");
     console.log("hello");
 })
 
