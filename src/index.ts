@@ -20,7 +20,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-    origin: ["https://second-brain-alpha-gray.vercel.app"],
+    origin: ["https://second-brain-fe-beta.vercel.app"],
     methods: ["GET", "POST", "DELETE", "OPTIONS"],
     credentials: true,
 }));
